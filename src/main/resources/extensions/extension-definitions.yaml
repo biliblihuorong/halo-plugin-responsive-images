@@ -1,0 +1,19 @@
+apiVersion: plugin.halo.run/v1alpha1
+kind: ExtensionDefinition
+metadata:
+  name: responsive-images-post-content-handler
+spec:
+  className: io.github.biliblihuorong.responsiveimages.render.PostContentHandler
+  extensionPointName: reactive-post-content-handler
+  displayName: "响应式图片"
+  description: "为文章正文里的图片补上 srcset"
+---
+apiVersion: plugin.halo.run/v1alpha1
+kind: ExtensionDefinition
+metadata:
+  name: responsive-images-singlepage-content-handler
+spec:
+  className: io.github.biliblihuorong.responsiveimages.render.SinglePageContentHandler
+  extensionPointName: reactive-singlepage-content-handler
+  displayName: "响应式图片"
+  description: "为独立页面正文里的图片补上 srcset"
