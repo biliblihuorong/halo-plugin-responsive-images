@@ -28,6 +28,13 @@ public final class ImgRewriter {
     public static final String MARKER = "data-responsive-src";
 
     /**
+     * 衍生图加载失败时撤下 srcset，浏览器会重新按 src 加载文章里原本写的图片地址。
+     * 只执行一次，原图也失败时不会循环。懒加载图片的 src 是占位图，所以改用标记里的原图地址。
+     */
+    static final String FALLBACK = "this.onerror=null;this.removeAttribute('srcset')";
+    static final String FALLBACK_LAZY = FALLBACK + ";this.src=this.getAttribute('" + MARKER + "')";
+
+    /**
      * 已有真正的 srcset（包括 Halo 自带缩略图补上的）时返回空，不覆盖。
      * 以下几种视为没有，可以覆盖：主题用 thumbnail.gen 给外链图生成、每一项都是原图地址的 srcset；
      * 真实地址在懒加载属性里时，src 是占位图，此时 srcset 描述的是占位图。
@@ -91,6 +98,9 @@ public final class ImgRewriter {
         result.put(srcsetName, srcset(variants));
         if (candidate.fromLazyAttribute() && srcsetName.equals("srcset")) {
             result.put(MARKER, candidate.url());
+        }
+        if (setting.isFallbackOnError() && srcsetName.equals("srcset") && !hasText(attr.apply("onerror"))) {
+            result.put("onerror", candidate.fromLazyAttribute() ? FALLBACK_LAZY : FALLBACK);
         }
         if (!hasText(attr.apply("sizes")) && hasText(setting.getSizes())) {
             result.put("sizes", setting.getSizes().trim());

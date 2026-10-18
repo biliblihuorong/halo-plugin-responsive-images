@@ -35,8 +35,9 @@ class ImgRewriterTest {
         Map<String, String> attrs = new HashMap<>(Map.of("src", "https://img.test/a.jpg", "sizes", "50vw"));
         var c = ImgRewriter.candidate(attrs::get, setting).orElseThrow();
         var result = ImgRewriter.attributes(c, variants, attrs::get, setting);
-        assertThat(result).containsExactly(Map.entry("srcset",
-            "https://img.test/a_w400_v1.webp 400w, https://img.test/a_w800_v1.webp 800w"));
+        assertThat(result).containsExactly(
+            Map.entry("srcset", "https://img.test/a_w400_v1.webp 400w, https://img.test/a_w800_v1.webp 800w"),
+            Map.entry("onerror", ImgRewriter.FALLBACK));
     }
 
     @Test
@@ -92,5 +93,22 @@ class ImgRewriterTest {
         Map<String, String> attrs = Map.of("src", "https://img.test/a.jpg");
         var c = ImgRewriter.candidate(attrs::get, setting).orElseThrow();
         assertThat(ImgRewriter.attributes(c, variants, attrs::get, setting)).doesNotContainKey(ImgRewriter.MARKER);
+    }
+
+    @Test
+    void fallbackOnErrorIsOptionalAndKeepsExistingHandlers() {
+        Map<String, String> lazy = Map.of("src", "/loading.gif", "data-src", "https://img.test/a.jpg");
+        var c = ImgRewriter.candidate(lazy::get, setting).orElseThrow();
+        assertThat(ImgRewriter.attributes(c, variants, lazy::get, setting))
+            .containsEntry("onerror", ImgRewriter.FALLBACK_LAZY);
+
+        Map<String, String> own = Map.of("src", "https://img.test/a.jpg", "onerror", "mine()");
+        var o = ImgRewriter.candidate(own::get, setting).orElseThrow();
+        assertThat(ImgRewriter.attributes(o, variants, own::get, setting)).doesNotContainKey("onerror");
+
+        setting.setFallbackOnError(false);
+        Map<String, String> plain = Map.of("src", "https://img.test/a.jpg");
+        var p = ImgRewriter.candidate(plain::get, setting).orElseThrow();
+        assertThat(ImgRewriter.attributes(p, variants, plain::get, setting)).doesNotContainKey("onerror");
     }
 }

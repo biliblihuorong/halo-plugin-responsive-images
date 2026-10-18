@@ -30,6 +30,7 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 | --- | --- | --- |
 | 默认 sizes | `(max-width: 800px) 100vw, 800px` | 图片没有 `sizes` 时补上，按主题正文宽度调整效果最好 |
 | 补写宽高属性 | 关 | 写入最大版本的 `width`/`height` 减少页面跳动，需要主题给图片设置 `height: auto` |
+| 衍生图加载失败时回退 | 开 | 写一个只执行一次的 `onerror`：撤下 `srcset`，改加载原本的 `src`（懒加载图片用 `data-responsive-src`）。站点 CSP 禁止内联脚本时关闭 |
 | 懒加载地址属性 | `data-src`、`data-lazy-src`、`data-original` | 懒加载主题把真实地址放在这些属性里，优先于 `src` |
 | 懒加载图片的 srcset 属性名 | `srcset` | lazysizes、vanilla-lazyload 等库填 `data-srcset` |
 | 结果缓存 | 30 分钟 | 按图片地址缓存在插件内存里，最多 2 万条；修改来源设置后自动清空 |

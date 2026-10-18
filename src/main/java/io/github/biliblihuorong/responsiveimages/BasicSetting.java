@@ -24,6 +24,9 @@ public class BasicSetting {
     /** 图片没有宽高属性时写入最大版本的宽高，需要主题给图片设置 height: auto。 */
     private boolean writeDimensions = false;
 
+    /** 衍生图加载失败时撤下 srcset，回到原来的图片地址。 */
+    private boolean fallbackOnError = true;
+
     /** 懒加载主题存放真实地址的属性，每行一个，按顺序优先于 src。 */
     private String lazyAttributes = "data-src\ndata-lazy-src\ndata-original";
 

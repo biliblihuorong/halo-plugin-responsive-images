@@ -62,6 +62,11 @@ spec:
           label: 补写宽高属性
           value: false
           help: 写入最大版本的 width 和 height，减少页面跳动。主题需要给图片设置 height:auto，否则图片可能变形
+        - $formkit: checkbox
+          name: fallbackOnError
+          label: 衍生图加载失败时回退
+          value: true
+          help: 衍生图加载失败时撤下 srcset，改为加载文章里原本写的图片地址（通常是主 WebP 或原图）。会在 img 上写一个 onerror 属性；站点开了禁止内联脚本的 CSP 时请关闭
         - $formkit: textarea
           name: lazyAttributes
           label: 懒加载地址属性
