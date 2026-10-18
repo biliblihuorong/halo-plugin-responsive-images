@@ -1,0 +1,62 @@
+apiVersion: storage.halo.run/v1alpha1
+kind: PolicyTemplate
+metadata:
+  # 名字用来判断附件是否归本插件处理，不能改。
+  name: responsive-images-imgnest
+spec:
+  displayName: ImgNest 图床
+  settingName: responsive-images-imgnest-policy-setting
+---
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: responsive-images-imgnest-policy-setting
+spec:
+  forms:
+    - group: default
+      formSchema:
+        - $formkit: url
+          name: endpoint
+          label: ImgNest 地址
+          help: 站点根地址，例如 https://img.example.com，不用加 /api。
+          placeholder: https://img.example.com
+          validation: required|url
+        - $formkit: password
+          name: token
+          label: API Token
+          help: 在 ImgNest「Token 与安全」页面创建，站点需要开启 API。
+          validation: required
+        - $formkit: number
+          name: policyId
+          label: 上传规则 ID
+          help: 可选，对应 policy_id。留空用账号的默认规则。想让文章自动有响应式版本，规则里要开启「响应式衍生图」。
+          validation: min:1
+        - $formkit: number
+          name: albumId
+          label: 相册 ID
+          help: 可选，对应 album_id。
+          validation: min:1
+        - $formkit: select
+          name: visibility
+          label: 公开性
+          help: 只影响 ImgNest 里的画廊展示，图片链接始终可以直接访问。
+          value: ""
+          options:
+            - label: 跟随图床默认
+              value: ""
+            - label: 公开
+              value: public
+            - label: 不公开
+              value: private
+        - $formkit: checkbox
+          name: deleteRemote
+          label: 同步删除
+          help: 在 Halo 删除附件时，把图片移进 ImgNest 回收站（可在回收站恢复）。关闭后只删除 Halo 里的记录。
+          value: true
+        - $formkit: text
+          name: instanceId
+          label: 实例 ID
+          help: 可选。删除时只处理实例 ID 相同的附件，防止换了图床地址后误删另一个站点的同号图片。留空时用图床地址生成；以后要换地址，先在这里填上旧地址生成的值（例如 img.example.com）。
+          validation: [ [ 'matches', '/^[\w.:/-]+$/' ] ]
+          validation-messages:
+            matches: "只能包含字母、数字以及 . : / _ -"

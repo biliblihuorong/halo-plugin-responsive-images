@@ -1,0 +1,95 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: responsive-images-settings
+spec:
+  forms:
+    - group: sources
+      label: 图片来源
+      formSchema:
+        - $formkit: repeater
+          name: sources
+          label: 来源
+          help: 按顺序匹配，图片地址命中第一个来源的域名后只问这个来源；都不匹配的图片保持原样。
+          value: []
+          children:
+            - $formkit: select
+              name: type
+              label: 类型
+              value: lookup
+              options:
+                - label: 查询接口（ImgNest 等，按链接批量查询已生成的版本）
+                  value: lookup
+                - label: URL 规则（可实时缩放的 CDN，如 OSS、COS、七牛、imgproxy）
+                  value: template
+            - $formkit: textarea
+              name: hosts
+              label: 图片域名
+              help: 每行一个，可带路径前缀，例如 img.example.com 或 cdn.example.com/blog/；支持 *.example.com
+              validation: required
+            - $formkit: url
+              name: endpoint
+              label: 查询接口地址
+              help: 仅「查询接口」使用。ImgNest 填 https://你的ImgNest站点/api/variants
+            - $formkit: text
+              name: widths
+              label: 生成宽度
+              value: "400,800,1600"
+              help: 仅「URL 规则」使用，逗号分隔
+            - $formkit: text
+              name: template
+              label: URL 模板
+              help: 仅「URL 规则」使用。{url} 原图地址，{sep} 按原图是否带参数自动为 ? 或 &，{width} 宽度。例如 {url}{sep}x-oss-process=image/resize,w_{width}
+    - group: basic
+      label: 基本设置
+      formSchema:
+        - $formkit: checkbox
+          name: enableContent
+          label: 处理文章与页面正文
+          value: true
+        - $formkit: checkbox
+          name: enableTemplate
+          label: 处理主题模板里的图片
+          help: 封面、头像、友链图标等，无需修改主题
+          value: true
+        - $formkit: text
+          name: sizes
+          label: 默认 sizes
+          value: "(max-width: 800px) 100vw, 800px"
+          help: 图片没有 sizes 属性时补上，告诉浏览器图片的显示宽度。建议按主题正文宽度调整
+        - $formkit: checkbox
+          name: writeDimensions
+          label: 补写宽高属性
+          value: false
+          help: 写入最大版本的 width 和 height，减少页面跳动。主题需要给图片设置 height:auto，否则图片可能变形
+        - $formkit: checkbox
+          name: fallbackOnError
+          label: 衍生图加载失败时回退
+          value: true
+          help: 衍生图加载失败时撤下 srcset，改为加载文章里原本写的图片地址（通常是主 WebP 或原图）。会在 img 上写一个 onerror 属性；站点开了禁止内联脚本的 CSP 时请关闭
+        - $formkit: textarea
+          name: lazyAttributes
+          label: 懒加载地址属性
+          value: |-
+            data-src
+            data-lazy-src
+            data-original
+          help: 懒加载主题把真实地址放在这些属性里，按顺序优先于 src，每行一个
+        - $formkit: text
+          name: lazySrcsetAttribute
+          label: 懒加载图片的 srcset 属性名
+          value: srcset
+          help: 真实地址来自懒加载属性时写到这里。lazysizes、vanilla-lazyload 等库填 data-srcset
+        - $formkit: number
+          name: timeoutMillis
+          label: 查询超时（毫秒）
+          value: 800
+          number: integer
+          validation: min:100
+          help: 超时就保持原图，不拖慢页面
+        - $formkit: number
+          name: cacheMinutes
+          label: 结果缓存（分钟）
+          value: 30
+          number: integer
+          validation: min:1
