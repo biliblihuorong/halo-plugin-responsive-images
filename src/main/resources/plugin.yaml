@@ -15,7 +15,7 @@ spec:
   settingName: responsive-images-settings
   configMapName: responsive-images-configmap
   displayName: "响应式图片"
-  description: "渲染页面时为正文和主题模板里的图片补上 srcset，支持 ImgNest 等查询接口和可实时处理图片的 CDN。"
+  description: "渲染页面时为正文和主题模板里的图片补上 srcset，支持 ImgNest 等查询接口和可实时处理图片的 CDN；附带 ImgNest 图床存储策略。"
   license:
     - name: "MIT"
       url: "https://github.com/biliblihuorong/halo-plugin-responsive-images/blob/main/LICENSE"

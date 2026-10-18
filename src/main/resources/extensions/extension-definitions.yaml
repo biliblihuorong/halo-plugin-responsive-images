@@ -17,3 +17,23 @@ spec:
   extensionPointName: reactive-singlepage-content-handler
   displayName: "响应式图片"
   description: "为独立页面正文里的图片补上 srcset"
+---
+apiVersion: plugin.halo.run/v1alpha1
+kind: ExtensionDefinition
+metadata:
+  name: responsive-images-imgnest-attachment-handler
+spec:
+  className: io.github.biliblihuorong.responsiveimages.upload.ImgNestAttachmentHandler
+  extensionPointName: attachment-handler
+  displayName: "ImgNest 图床"
+  description: "把附件库里的图片上传到 ImgNest（/api/v2）"
+---
+apiVersion: plugin.halo.run/v1alpha1
+kind: ExtensionDefinition
+metadata:
+  name: responsive-images-imgnest-thumbnail-provider
+spec:
+  className: io.github.biliblihuorong.responsiveimages.upload.ImgNestThumbnailProvider
+  extensionPointName: thumbnail-provider
+  displayName: "ImgNest 响应式缩略图"
+  description: "为上传到 ImgNest 的附件提供图床已生成的缩略图（Halo 2.20、2.21）"
