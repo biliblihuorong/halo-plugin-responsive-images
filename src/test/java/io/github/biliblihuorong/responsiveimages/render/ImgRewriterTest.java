@@ -71,4 +71,26 @@ class ImgRewriterTest {
         assertThat(ImgRewriter.srcset(List.of(new Variant("https://o.test/a b.jpg?p=resize,w_400", 400, null))))
             .isEqualTo("https://o.test/a%20b.jpg?p=resize,w_400 400w");
     }
+
+    @Test
+    void lazyImagesReplaceThePlaceholderSrcsetAndAreMarked() {
+        // 占位图被 Halo 自带缩略图补上了 srcset，真实地址在 data-lazy-src 里。
+        Map<String, String> attrs = Map.of("src", "/themes/t/loading.png",
+            "srcset", "/themes/t/loading.png?width=400 400w", "data-lazy-src", "https://img.test/a.jpg");
+        var c = ImgRewriter.candidate(attrs::get, setting).orElseThrow();
+        assertThat(ImgRewriter.attributes(c, variants, attrs::get, setting))
+            .containsEntry(ImgRewriter.MARKER, "https://img.test/a.jpg")
+            .containsKey("srcset");
+
+        Map<String, String> done = Map.of("src", "/themes/t/loading.png", "srcset", "x 400w",
+            "data-lazy-src", "https://img.test/a.jpg", ImgRewriter.MARKER, "https://img.test/a.jpg");
+        assertThat(ImgRewriter.candidate(done::get, setting)).isEmpty();
+    }
+
+    @Test
+    void nonLazyImagesAreNotMarked() {
+        Map<String, String> attrs = Map.of("src", "https://img.test/a.jpg");
+        var c = ImgRewriter.candidate(attrs::get, setting).orElseThrow();
+        assertThat(ImgRewriter.attributes(c, variants, attrs::get, setting)).doesNotContainKey(ImgRewriter.MARKER);
+    }
 }

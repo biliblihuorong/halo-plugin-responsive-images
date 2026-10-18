@@ -22,8 +22,15 @@ public final class ImgRewriter {
     }
 
     /**
+     * 写入 srcset 时，如果真实地址来自懒加载属性，用这个属性标明 srcset 对应的原图，
+     * 让主题脚本能区分它和占位图自带的 srcset。
+     */
+    public static final String MARKER = "data-responsive-src";
+
+    /**
      * 已有真正的 srcset（包括 Halo 自带缩略图补上的）时返回空，不覆盖。
-     * 主题用 thumbnail.gen 给外链图生成的 srcset 每一项都是原图地址，这种视为没有，可以覆盖。
+     * 以下几种视为没有，可以覆盖：主题用 thumbnail.gen 给外链图生成、每一项都是原图地址的 srcset；
+     * 真实地址在懒加载属性里时，src 是占位图，此时 srcset 描述的是占位图。
      */
     public static Optional<Candidate> candidate(Function<String, String> attr, BasicSetting setting) {
         Candidate candidate = null;
@@ -41,8 +48,13 @@ public final class ImgRewriter {
         if (candidate == null) {
             return Optional.empty();
         }
+        if (candidate.url().equals(attr.apply(MARKER))) {
+            return Optional.empty();
+        }
+        var srcIsPlaceholder = candidate.fromLazyAttribute() && !candidate.url().equals(trim(src));
         for (var name : List.of("srcset", setting.effectiveLazySrcsetAttribute())) {
-            if (!isPlaceholderSrcset(attr.apply(name), candidate.url(), src)) {
+            var placeholderOwned = srcIsPlaceholder && name.equals("srcset");
+            if (!placeholderOwned && !isPlaceholderSrcset(attr.apply(name), candidate.url(), src)) {
                 return Optional.empty();
             }
         }
@@ -77,6 +89,9 @@ public final class ImgRewriter {
         }
         var srcsetName = candidate.fromLazyAttribute() ? setting.effectiveLazySrcsetAttribute() : "srcset";
         result.put(srcsetName, srcset(variants));
+        if (candidate.fromLazyAttribute() && srcsetName.equals("srcset")) {
+            result.put(MARKER, candidate.url());
+        }
         if (!hasText(attr.apply("sizes")) && hasText(setting.getSizes())) {
             result.put("sizes", setting.getSizes().trim());
         }
@@ -101,6 +116,10 @@ public final class ImgRewriter {
         }
         var v = value.trim().toLowerCase();
         return v.startsWith("http://") || v.startsWith("https://") || v.startsWith("//");
+    }
+
+    private static String trim(String value) {
+        return value == null ? null : value.trim();
     }
 
     private static boolean hasText(String value) {

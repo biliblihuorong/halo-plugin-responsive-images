@@ -34,6 +34,13 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 | 懒加载图片的 srcset 属性名 | `srcset` | lazysizes、vanilla-lazyload 等库填 `data-srcset` |
 | 结果缓存 | 30 分钟 | 按图片地址缓存在插件内存里，最多 2 万条；修改来源设置后自动清空 |
 
+## 懒加载主题适配
+
+懒加载主题常把占位图放在 `src`、真实地址放在 `data-lazy-src` 等属性里。插件从懒加载属性读到地址时：
+
+- `src` 上占位图自带的 `srcset`（例如 Halo 自带缩略图补上的）描述的是占位图，会被替换；
+- 同时写入 `data-responsive-src="原图地址"`，标明这个 `srcset` 属于哪张图。主题脚本可以据此判断：`data-responsive-src` 等于真实地址时保留 `srcset`，否则仍按占位图处理。没装插件时没有这个属性，主题行为不变。
+
 ## 开发
 
 需要 Java 21。
