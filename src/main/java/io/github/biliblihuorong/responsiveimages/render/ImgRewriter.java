@@ -22,20 +22,48 @@ public final class ImgRewriter {
     }
 
     /**
-     * 已有 srcset（包括 Halo 自带缩略图补上的）时返回空，不覆盖。
+     * 已有真正的 srcset（包括 Halo 自带缩略图补上的）时返回空，不覆盖。
+     * 主题用 thumbnail.gen 给外链图生成的 srcset 每一项都是原图地址，这种视为没有，可以覆盖。
      */
     public static Optional<Candidate> candidate(Function<String, String> attr, BasicSetting setting) {
-        if (hasText(attr.apply("srcset")) || hasText(attr.apply(setting.effectiveLazySrcsetAttribute()))) {
-            return Optional.empty();
-        }
+        Candidate candidate = null;
         for (var name : setting.lazyAttributeList()) {
             var value = attr.apply(name);
             if (isImageUrl(value)) {
-                return Optional.of(new Candidate(value.trim(), true));
+                candidate = new Candidate(value.trim(), true);
+                break;
             }
         }
         var src = attr.apply("src");
-        return isImageUrl(src) ? Optional.of(new Candidate(src.trim(), false)) : Optional.empty();
+        if (candidate == null && isImageUrl(src)) {
+            candidate = new Candidate(src.trim(), false);
+        }
+        if (candidate == null) {
+            return Optional.empty();
+        }
+        for (var name : List.of("srcset", setting.effectiveLazySrcsetAttribute())) {
+            if (!isPlaceholderSrcset(attr.apply(name), candidate.url(), src)) {
+                return Optional.empty();
+            }
+        }
+        return Optional.of(candidate);
+    }
+
+    /** 空，或者每一项都只是原图地址本身。 */
+    static boolean isPlaceholderSrcset(String srcset, String url, String src) {
+        if (!hasText(srcset)) {
+            return true;
+        }
+        for (var item : srcset.split(",\\s+|,$")) {
+            var parts = item.trim().split("\\s+");
+            if (parts[0].isEmpty()) {
+                continue;
+            }
+            if (!parts[0].equals(url) && !parts[0].equals(src == null ? null : src.trim())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -63,7 +91,7 @@ public final class ImgRewriter {
 
     static String srcset(List<Variant> variants) {
         return variants.stream()
-            .map(v -> v.url().replace(" ", "%20").replace(",", "%2C") + " " + v.width() + "w")
+            .map(v -> v.url().replace(" ", "%20") + " " + v.width() + "w")
             .collect(Collectors.joining(", "));
     }
 

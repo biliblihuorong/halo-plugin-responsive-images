@@ -59,8 +59,16 @@ class ImgRewriterTest {
     }
 
     @Test
-    void escapesCommasInUrls() {
-        assertThat(ImgRewriter.srcset(List.of(new Variant("https://o.test/a.jpg?p=resize,w_400", 400, null))))
-            .isEqualTo("https://o.test/a.jpg?p=resize%2Cw_400 400w");
+    void replacesSrcsetThatOnlyRepeatsTheOriginal() {
+        // theme-earth 等主题对外链图调用 thumbnail.gen，得到的 srcset 每项都是原图。
+        Map<String, String> attrs = Map.of("src", "https://img.test/a.jpg",
+            "srcset", "https://img.test/a.jpg 400w, https://img.test/a.jpg 800w");
+        assertThat(ImgRewriter.candidate(attrs::get, setting)).isPresent();
+    }
+
+    @Test
+    void keepsUrlsWithCommasAsIs() {
+        assertThat(ImgRewriter.srcset(List.of(new Variant("https://o.test/a b.jpg?p=resize,w_400", 400, null))))
+            .isEqualTo("https://o.test/a%20b.jpg?p=resize,w_400 400w");
     }
 }

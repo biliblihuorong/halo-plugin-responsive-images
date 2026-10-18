@@ -6,7 +6,7 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 
 - **文章与独立页面正文**：收集本页所有图片，按来源合并成一次批量查询，把结果写回 HTML。
 - **主题模板里的图片**：封面、头像、友链图标等，通过 Halo 的 `ElementTagPostProcessor` 扩展点处理，任何主题都适用。
-- 已经有 `srcset` 的图片（包括 Halo 自带缩略图补上的）一律跳过；只新增属性，不改 `src`。
+- 已经有 `srcset` 的图片（包括 Halo 自带缩略图补上的）一律跳过；只新增属性，不改 `src`。主题用 `thumbnail.gen` 给外链图生成的 `srcset`（每一项都是原图地址）视为没有，会被替换。
 - 查询失败或超时（默认 800 毫秒）时保持原图，失败结果缓存 1 分钟，避免每次渲染都等超时。
 
 ## 图片来源
@@ -39,8 +39,8 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 需要 Java 21。
 
 ```bash
-./gradlew build   # 测试并打包到 build/libs
-./gradlew haloServer   # 启动带插件的 Halo 开发环境（需要 Docker）
+./gradlew build       # 测试并打包到 build/libs
+./gradlew haloServer  # 启动带插件的 Halo 开发环境（需要 Docker）
 ```
 
 最低支持 Halo 2.20（`ElementTagPostProcessor` 从这个版本开始提供），用 2.20 的 API 编译。

@@ -30,7 +30,7 @@ public class ImgTagProcessor implements ElementTagPostProcessor {
 
     @Override
     public Mono<IProcessableElementTag> process(ITemplateContext context, IProcessableElementTag tag) {
-        if (!imgName.matches(tag.getElementDefinition().getElementName()) || tag.hasAttribute("srcset")) {
+        if (!imgName.matches(tag.getElementDefinition().getElementName())) {
             return Mono.empty();
         }
         return registry.snapshot()
