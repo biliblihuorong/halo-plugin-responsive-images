@@ -1,9 +1,15 @@
 name: CD
 
 on:
+  push:
+    tags:
+      - "v*"
   release:
     types:
       - published
+
+concurrency:
+  group: release-${{ github.ref_name }}
 
 jobs:
   release:
@@ -19,6 +25,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build with the release version
         run: ./gradlew build -Pversion="${GITHUB_REF_NAME#v}"
+      - name: Create the release for a pushed tag
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi
       - name: Attach the jar to the release
         env:
           GH_TOKEN: ${{ github.token }}

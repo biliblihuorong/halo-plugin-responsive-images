@@ -4,6 +4,12 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 
 另外提供「ImgNest 图床」存储策略，Halo 附件库可以直接把图片上传到 [ImgNest](https://github.com/biliblihuorong/imgnest)。
 
+## 安装
+
+需要 Halo 2.20 及以上，已在 2.20.20、2.22.11 和 2.27.0 上测试。从 [Releases](https://github.com/biliblihuorong/halo-plugin-responsive-images/releases) 下载 jar，在 Halo 后台「插件 → 安装」上传即可。
+
+发布新版本：推送 `vX.Y.Z` 标签（或在 GitHub 上发布 Release），CD 会用这个版本号构建并把 jar 挂到 Release 上。
+
 ## 处理什么
 
 - **文章与独立页面正文**：收集本页所有图片，按来源合并成一次批量查询，把结果写回 HTML。
