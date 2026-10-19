@@ -1,7 +1,10 @@
 package io.github.biliblihuorong.responsiveimages.upload;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +25,8 @@ public class ImgNestClient {
 
     static final Duration UPLOAD_TIMEOUT = Duration.ofMinutes(2);
     static final Duration DELETE_TIMEOUT = Duration.ofSeconds(30);
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final WebClient webClient;
 
@@ -83,18 +88,38 @@ public class ImgNestClient {
             .onErrorMap(WebClientRequestException.class, ImgNestClient::unreachable);
     }
 
+    /**
+     * 按 JSON 解析响应，不看 Content-Type：反向代理或 CDN 可能改写成 text/plain 之类。
+     * 解析不了时把状态、类型和开头一段内容放进错误里，方便判断是哪一层返回的。
+     */
     private static Mono<JsonNode> envelope(ClientResponse response) {
         var status = response.statusCode().value();
-        return response.bodyToMono(JsonNode.class)
-            .onErrorResume(e -> Mono.empty())
-            .defaultIfEmpty(com.fasterxml.jackson.databind.node.MissingNode.getInstance())
-            .flatMap(body -> {
+        var contentType = response.headers().contentType().map(MediaType::toString).orElse("");
+        return response.bodyToMono(byte[].class)
+            .defaultIfEmpty(new byte[0])
+            .flatMap(bytes -> {
+                JsonNode body;
+                try {
+                    body = MAPPER.readTree(bytes);
+                } catch (IOException e) {
+                    body = null;
+                }
+                if (body == null || !body.isObject()) {
+                    return Mono.error(new ImgNestException(status, 0, "响应不是 JSON（Content-Type: "
+                        + (contentType.isEmpty() ? "无" : contentType) + "）：" + snippet(bytes)));
+                }
                 var code = body.path("code").asInt(-1);
                 if (status >= 200 && status < 300 && code == 0) {
                     return Mono.just(body.path("data"));
                 }
                 return Mono.error(new ImgNestException(status, Math.max(code, 0), body.path("message").asText("")));
             });
+    }
+
+    private static String snippet(byte[] bytes) {
+        var text = new String(bytes, 0, Math.min(bytes.length, 160), StandardCharsets.UTF_8)
+            .replaceAll("\\s+", " ").strip();
+        return text.isEmpty() ? "（空）" : text;
     }
 
     private static ImgNestException unreachable(WebClientRequestException e) {

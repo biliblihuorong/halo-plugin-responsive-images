@@ -80,6 +80,35 @@ class ImgNestClientTest {
     }
 
     @Test
+    void readsAGzippedResponseFromAProxy() throws Exception {
+        var gzipped = new okio.Buffer();
+        try (var sink = okio.Okio.buffer(new okio.GzipSink(gzipped))) {
+            sink.writeUtf8("{\"code\":0,\"message\":\"ok\",\"data\":" + UploadedImageTest.BODY + "}");
+        }
+        server.enqueue(new MockResponse().setResponseCode(201).setHeader("Content-Type", "application/json")
+            .setHeader("Content-Encoding", "gzip").setBody(gzipped));
+        var image = client.upload(config("/"), bytes("x"), "a.png", MediaType.IMAGE_PNG).block();
+        assertThat(image.id()).isEqualTo(4);
+    }
+
+    @Test
+    void readsJsonWhateverTheContentType() {
+        server.enqueue(new MockResponse().setResponseCode(201).setHeader("Content-Type", "text/plain")
+            .setBody("{\"code\":0,\"message\":\"ok\",\"data\":" + UploadedImageTest.BODY + "}"));
+        var image = client.upload(config("/"), bytes("x"), "a.png", MediaType.IMAGE_PNG).block();
+        assertThat(image.id()).isEqualTo(4);
+    }
+
+    @Test
+    void explainsAResponseThatIsNotJson() {
+        server.enqueue(new MockResponse().setResponseCode(201).setHeader("Content-Type", "text/html")
+            .setBody("<html>challenge</html>"));
+        assertThatThrownBy(() -> client.upload(config("/"), bytes("x"), "a.png", MediaType.IMAGE_PNG).block())
+            .isInstanceOfSatisfying(ImgNestException.class, e ->
+                assertThat(e.describe()).contains("HTTP 201", "不是 JSON", "text/html", "<html>challenge"));
+    }
+
+    @Test
     void reportsErrorsWithoutTheToken() {
         respond(401, "{\"code\":20001,\"message\":\"unauthenticated\",\"data\":null}");
         assertThatThrownBy(() -> client.upload(config("/"), bytes("x"), "a.png", MediaType.IMAGE_PNG).block())

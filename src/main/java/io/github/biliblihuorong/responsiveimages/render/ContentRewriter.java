@@ -31,6 +31,7 @@ public class ContentRewriter {
         return registry.snapshot()
             .flatMap(snapshot -> {
                 if (!snapshot.basic().isEnableContent() || snapshot.sources().isEmpty()) {
+                    log.debug("Skip content: processing is off or no usable source is configured");
                     return Mono.just(html);
                 }
                 var basic = snapshot.basic();
@@ -45,6 +46,8 @@ public class ContentRewriter {
                         .ifPresent(c -> pending.add(new Pending(img, c)));
                 }
                 if (pending.isEmpty()) {
+                    log.debug("Skip content: none of its {} image(s) matches a source",
+                        document.body().select("img").size());
                     return Mono.just(html);
                 }
                 var urls = new LinkedHashSet<String>();
@@ -60,6 +63,8 @@ public class ContentRewriter {
                         attrs.forEach(p.img()::attr);
                         changed |= !attrs.isEmpty();
                     }
+                    log.debug("Content: {} image(s) match a source, {} have variants", pending.size(),
+                        pending.stream().filter(p -> found.containsKey(p.candidate().url())).count());
                     return changed ? document.body().html() : html;
                 });
             })
