@@ -8,7 +8,7 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 
 需要 Halo 2.20 及以上，已在 2.20.20、2.22.11 和 2.27.0 上测试。从 [Releases](https://github.com/biliblihuorong/halo-plugin-responsive-images/releases) 下载 jar，在 Halo 后台「插件 → 安装」上传即可。
 
-发布新版本：推送 `vX.Y.Z` 标签（或在 GitHub 上发布 Release），CD 会用这个版本号构建并把 jar 挂到 Release 上。
+发布新版本：在 Actions 里手动运行 CD 并填版本号，或推送 `vX.Y.Z` 标签，或在 GitHub 上发布 Release。CD 会用这个版本号构建并把 jar 挂到 Release 上。
 
 ## 处理什么
 
