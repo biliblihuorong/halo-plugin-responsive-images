@@ -11,6 +11,10 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.codec.ByteArrayDecoder;
+import org.springframework.core.codec.CharSequenceEncoder;
+import org.springframework.http.codec.DecoderHttpMessageReader;
+import org.springframework.http.codec.EncoderHttpMessageWriter;
 import org.springframework.web.reactive.function.client.WebClient;
 
 class LookupApiSourceTest {
@@ -71,5 +75,40 @@ class LookupApiSourceTest {
         assertThat(first.getPath()).isEqualTo("/api/variants");
         assertThat(mapper.readTree(first.getBody().readUtf8()).path("urls").size()).isEqualTo(50);
         assertThat(mapper.readTree(server.takeRequest().getBody().readUtf8()).path("urls").size()).isEqualTo(10);
+    }
+
+    /**
+     * 新版 Halo 的 WebClient 只带 Jackson 3 的编解码器。这里干脆不注册任何 JSON 编解码器，
+     * 只留字节和字符串，确认查询不依赖宿主的 JSON 编解码器。
+     */
+    @Test
+    void worksWithoutHostJsonCodecs() {
+        server.enqueue(new MockResponse().setHeader("Content-Type", "text/plain")
+            .setBody("{\"code\":0,\"data\":{\"items\":[{\"found\":true,\"variants\":["
+                + "{\"url\":\"https://img.test/a_w400.webp\",\"width\":400,\"height\":300}]}]}}"));
+        var webClient = WebClient.builder()
+            .codecs(c -> {
+                c.registerDefaults(false);
+                c.customCodecs().register(new DecoderHttpMessageReader<>(new ByteArrayDecoder()));
+                c.customCodecs().register(new EncoderHttpMessageWriter<>(CharSequenceEncoder.allMimeTypes()));
+            })
+            .build();
+        var source = new LookupApiSource(server.url("/api/variants").uri(), HostMatcher.parse("img.test"),
+            webClient);
+
+        var result = source.resolve(List.of("https://img.test/a.jpg")).block();
+
+        assertThat(result.get("https://img.test/a.jpg")).containsExactly(
+            new Variant("https://img.test/a_w400.webp", 400, 300));
+    }
+
+    @Test
+    void failsTheBatchWhenTheResponseIsNotJson() {
+        server.enqueue(new MockResponse().setHeader("Content-Type", "text/html").setBody("<html>blocked</html>"));
+        var source = new LookupApiSource(server.url("/api/variants").uri(), HostMatcher.parse("img.test"),
+            WebClient.builder().build());
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> source.resolve(List.of("https://img.test/a.jpg"))
+            .block()).hasMessageContaining("not JSON");
     }
 }

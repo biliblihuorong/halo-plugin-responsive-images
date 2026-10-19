@@ -1,6 +1,9 @@
 package io.github.biliblihuorong.responsiveimages.upload;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
@@ -24,7 +27,6 @@ import run.halo.app.core.extension.attachment.Policy;
 import run.halo.app.core.extension.attachment.endpoint.AttachmentHandler;
 import run.halo.app.extension.ConfigMap;
 import run.halo.app.extension.Metadata;
-import run.halo.app.infra.utils.JsonUtils;
 
 /**
  * 「ImgNest 图床」存储策略：Halo 附件库上传的图片直接走 ImgNest /api/v2/upload，
@@ -43,6 +45,13 @@ public class ImgNestAttachmentHandler implements AttachmentHandler {
     static final String INSTANCE_ID = ANNOTATION_PREFIX + "imgnest-instance";
     static final String PERMALINK = ANNOTATION_PREFIX + "imgnest-url";
     static final String THUMBNAILS = ANNOTATION_PREFIX + "imgnest-thumbnails";
+
+    /**
+     * 插件自己的 ObjectMapper，不用 Halo 的 JsonUtils：新版 Halo（Spring Framework 7）换成了 Jackson 3，
+     * 方法签名和行为都可能和编译时的版本不一样。
+     */
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final ImgNestClient client;
 
@@ -165,7 +174,12 @@ public class ImgNestAttachmentHandler implements AttachmentHandler {
         if (!StringUtils.hasText(data)) {
             return new ImgNestPolicyConfig();
         }
-        return JsonUtils.jsonToObject(data, ImgNestPolicyConfig.class);
+        try {
+            return MAPPER.readValue(data, ImgNestPolicyConfig.class);
+        } catch (JsonProcessingException e) {
+            log.warn("Could not read the ImgNest storage policy settings: {}", e.getOriginalMessage());
+            return new ImgNestPolicyConfig();
+        }
     }
 
     /** 文件名或请求头声明为图片时返回其类型。真正的格式由 ImgNest 读文件头判断。 */
@@ -189,7 +203,11 @@ public class ImgNestAttachmentHandler implements AttachmentHandler {
         annotations.put(PERMALINK, image.permalink());
         var thumbnails = image.thumbnails();
         if (!thumbnails.isEmpty()) {
-            annotations.put(THUMBNAILS, JsonUtils.objectToJson(thumbnails));
+            try {
+                annotations.put(THUMBNAILS, MAPPER.writeValueAsString(thumbnails));
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
+            }
         }
         metadata.setAnnotations(annotations);
 
@@ -228,9 +246,9 @@ public class ImgNestAttachmentHandler implements AttachmentHandler {
         return annotation(attachment, THUMBNAILS)
             .map(json -> {
                 try {
-                    return JsonUtils.jsonToObject(json, new TypeReference<Map<String, String>>() {
+                    return MAPPER.readValue(json, new TypeReference<Map<String, String>>() {
                     });
-                } catch (RuntimeException e) {
+                } catch (JsonProcessingException e) {
                     return Map.<String, String>of();
                 }
             })
