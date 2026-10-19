@@ -1,6 +1,9 @@
 package io.github.biliblihuorong.responsiveimages.source;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,11 +19,16 @@ import reactor.core.publisher.Mono;
  * 通过批量查询接口获取衍生版本。协议与 ImgNest 的 POST /api/variants 相同：
  * 请求 {"urls":[...]}，响应 {"data":{"items":[{"url","found","variants":[{"url","width","height"}]}]}}，
  * 也接受没有 data 外壳的 {"items":[...]}。items 与请求顺序一致。
+ *
+ * <p>请求和响应都由插件自己的 ObjectMapper 读写，不经过 Halo 的编解码器：
+ * 新版 Halo（Spring Framework 7）的 WebClient 默认用 Jackson 3，解不了 Jackson 2 的 JsonNode。
  */
 public final class LookupApiSource implements VariantSource {
 
     /** 单批最多 50 个链接，与 ImgNest 的限制一致。 */
     static final int BATCH = 50;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final URI endpoint;
     private final HostMatcher hosts;
@@ -53,14 +61,34 @@ public final class LookupApiSource implements VariantSource {
     }
 
     private Mono<Map<String, List<Variant>>> lookup(List<String> batch) {
+        String request;
+        try {
+            request = MAPPER.writeValueAsString(Map.of("urls", batch));
+        } catch (JsonProcessingException e) {
+            return Mono.error(e);
+        }
         return webClient.post()
             .uri(endpoint)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(Map.of("urls", batch))
+            .bodyValue(request)
             .retrieve()
-            .bodyToMono(JsonNode.class)
-            .map(body -> parse(batch, body));
+            .bodyToMono(byte[].class)
+            .defaultIfEmpty(new byte[0])
+            .map(bytes -> parse(batch, readTree(bytes)));
+    }
+
+    /** 解析不了时抛出，由调用方当作这批查询失败。 */
+    static JsonNode readTree(byte[] bytes) {
+        try {
+            var node = MAPPER.readTree(bytes);
+            if (node == null || !node.isObject()) {
+                throw new IllegalStateException("lookup response is not a JSON object");
+            }
+            return node;
+        } catch (IOException e) {
+            throw new IllegalStateException("lookup response is not JSON", e);
+        }
     }
 
     static Map<String, List<Variant>> parse(List<String> batch, JsonNode body) {
