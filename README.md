@@ -1,8 +1,10 @@
-# halo-plugin-responsive-images
+# ImgNest 响应式图片
 
-社区维护的独立 Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽度加载合适尺寸的图片。不改主题模板，也不需要额外的清单文件。本项目由 shell 维护，不代表 Halo 官方。
+ImgNest 配套的社区 Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽度加载合适尺寸的图片。不改主题模板，也不需要额外的清单文件。本项目由 shell 维护，不依赖特定主题，不代表 Halo 官方。
 
 支持通用图片查询接口和 CDN URL 规则；另外提供「ImgNest 图床」存储策略，Halo 附件库可以直接把图片上传到同一作者维护的独立自托管项目 [ImgNest](https://github.com/biliblihuorong/imgnest)。ImgNest 适配是可选功能，使用 CDN URL 规则无需安装 ImgNest。本插件不提供托管图床或 CDN 服务。
+
+0.1.1 将插件显示名从「响应式图片」改为「ImgNest 响应式图片」。插件标识仍为 `responsive-images`，仓库名、jar 文件名和现有配置保持不变，升级无需迁移配置。
 
 应用市场图标与安装包使用同一份自有图标：[src/main/resources/logo.png](src/main/resources/logo.png)。可下载该 PNG 用于市场上架；矢量源文件和许可分别见 [logo.svg](src/main/resources/logo.svg)、[LOGO-LICENSE.txt](src/main/resources/LOGO-LICENSE.txt)。
 

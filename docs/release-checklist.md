@@ -1,4 +1,4 @@
-# 发布前复核记录
+# ImgNest 响应式图片发布前复核记录
 
 目标版本：**0.1.1**。本文件是维护者需要实际完成的核对记录，不是已通过测试的证明。目前没有登记 0.1.1 的人工复核结果。
 
@@ -10,15 +10,16 @@
 | Halo 精确版本、Java 版本 | 待填写 |
 | 主题及浏览器、视口 | 待填写 |
 | ImgNest 版本及提交（若使用） | 待填写；不使用时注明 |
-| jar 文件及 SHA-256 | 待实际构建后填写 |
-| 自动构建和测试结果链接 | 待填写；历史 0.1.0 的 CI 成功不能代替本版结果 |
+| jar 文件及 SHA-256 | `halo-plugin-responsive-images-0.1.1.jar`；`8032b5b8ae0749d3e23e67d4c86da78f0abe852451710bc7dfaa089d39fe74e8` |
+| 自动构建和测试结果 | 2026-10-19 本机完整构建成功，68 项测试全部通过；CI 链接待补充 |
 
 ## 版本与上架资料
 
-- [ ] 运行 `./gradlew build -Pversion=0.1.1`，测试通过，检查 `halo-plugin-responsive-images-0.1.1.jar` 内 `plugin.yaml` 版本为 `0.1.1`。
+- [x] 运行 `./gradlew --no-daemon build -Pversion=0.1.1`，68 项测试通过，检查 `halo-plugin-responsive-images-0.1.1.jar` 内 `plugin.yaml` 版本为 `0.1.1`、显示名为「ImgNest 响应式图片」。
 - [ ] 市场后台版本为 `0.1.1`，安装包使用本次核对的 jar，版本说明使用 `docs/releases/v0.1.1.md`。
+- [ ] 市场应用名称和安装后的插件显示名均为「ImgNest 响应式图片」；插件标识保持 `responsive-images`，已有设置和附件无需迁移。
 - [ ] 市场图标上传 `src/main/resources/logo.png`，与 jar 内图标、安装后的管理页图标一致。
-- [ ] 简介明确社区独立项目身份、ImgNest 为同作者维护的可选适配；详情披露外部服务、数据流、凭据保存和费用归属。
+- [ ] 简介明确社区维护身份、不依赖特定主题、不代表 Halo 官方，ImgNest 为同作者维护的可选适配，通用查询接口与 CDN URL 规则继续可用；详情披露外部服务、数据流、凭据保存和费用归属。
 - [ ] 审查 AI 辅助代码及关键功能路径，记录人工复核人和结果；不把历史 AI 验证记录直接标成人工测试。
 
 ## 人工功能路径
@@ -47,5 +48,6 @@
 
 - 已通过静态检查：工作流 YAML、全部 Bash 片段语法、内嵌 Python 语法、插件标识与图标引用、版本说明标题、本地文档链接、`git diff --check`。
 - 已用临时制品验证发布防错分支：正确版本通过；错误版本、非法版本标签、缺少图标均被拒绝。这些临时制品不是真实插件安装包。
-- 已尝试 `./gradlew build -Pversion=0.1.1`，环境在启动时报告 `JAVA_HOME is not set and no 'java' command could be found in your PATH`。本次没有运行 Java 编译和单元测试，也没有生成或核验真实 0.1.1 jar；需要在具备 Java 21 的环境重新执行。
+- 此前构建因缺少 JDK 未能启动。本次在 `/tmp` 临时准备并核对官方 SHA-256 的 Temurin `21.0.12.1+1`，使用项目指定的 Gradle `9.4.0` 执行 `./gradlew --no-daemon build -Pversion=0.1.1`，完整构建成功，68 项测试全部通过，无失败、错误或跳过。
+- 已生成 `build/libs/halo-plugin-responsive-images-0.1.1.jar`（103814 字节）及同目录 `.jar.sha256` 文件；核对 JAR 完整性、包内名称「ImgNest 响应式图片」、版本 `0.1.1`、标识 `responsive-images`、Java 21 字节码，以及图标和扩展定义与源码的一致性。SHA-256 见上表。
 - 尚未登记本版的人工安装、页面、ImgNest、禁用、卸载及回退测试，以上人工清单保持未勾选。

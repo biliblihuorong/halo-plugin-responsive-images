@@ -14,8 +14,8 @@ spec:
   issues: https://github.com/biliblihuorong/halo-plugin-responsive-images/issues
   settingName: responsive-images-settings
   configMapName: responsive-images-configmap
-  displayName: "响应式图片"
-  description: "社区维护的独立响应式图片插件，为正文和主题图片补上 srcset，支持通用查询接口与 CDN URL 规则；可选适配同作者的自托管 ImgNest 图床，不代表 Halo 官方。"
+  displayName: "ImgNest 响应式图片"
+  description: "ImgNest 配套的社区 Halo 插件，为正文和主题图片补上 srcset；支持通用查询接口与 CDN URL 规则，ImgNest 图床适配可选，不依赖特定主题，不代表 Halo 官方。"
   license:
     - name: "MIT"
       url: "https://github.com/biliblihuorong/halo-plugin-responsive-images/blob/main/LICENSE"

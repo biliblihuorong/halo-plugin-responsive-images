@@ -1,4 +1,4 @@
-Responsive Images application icon
+ImgNest 响应式图片 application icon
 Copyright (c) 2026 shell
 
 logo.svg is the editable source for logo.png (512 x 512).

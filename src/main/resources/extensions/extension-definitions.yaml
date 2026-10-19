@@ -5,7 +5,7 @@ metadata:
 spec:
   className: io.github.biliblihuorong.responsiveimages.render.PostContentHandler
   extensionPointName: reactive-post-content-handler
-  displayName: "响应式图片"
+  displayName: "ImgNest 响应式图片"
   description: "为文章正文里的图片补上 srcset"
 ---
 apiVersion: plugin.halo.run/v1alpha1
@@ -15,7 +15,7 @@ metadata:
 spec:
   className: io.github.biliblihuorong.responsiveimages.render.SinglePageContentHandler
   extensionPointName: reactive-singlepage-content-handler
-  displayName: "响应式图片"
+  displayName: "ImgNest 响应式图片"
   description: "为独立页面正文里的图片补上 srcset"
 ---
 apiVersion: plugin.halo.run/v1alpha1
