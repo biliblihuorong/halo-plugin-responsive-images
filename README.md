@@ -63,6 +63,14 @@ Halo 插件：渲染页面时为图片补上 `srcset`，让浏览器按屏幕宽
 - `src` 上占位图自带的 `srcset`（例如 Halo 自带缩略图补上的）描述的是占位图，会被替换；
 - 同时写入 `data-responsive-src="原图地址"`，标明这个 `srcset` 属于哪张图。主题脚本可以据此判断：`data-responsive-src` 等于真实地址时保留 `srcset`，否则仍按占位图处理。没装插件时没有这个属性，主题行为不变。
 
+## 排查
+
+插件把关键信息写进 Halo 日志（搜 `Responsive images` 或 `Variant lookup`）：
+
+- 设置变化后打一次实际生效的来源，例如 `Responsive images: 1 source(s) in use: lookup:https://img.example.com/api/variants`；配置有问题（没填域名、查询接口无效、选了「URL 规则」却没填模板）会给出 WARN。选了「URL 规则」但模板为空、又填了查询接口时，按查询接口使用。
+- 每次真正去查询（缓存未命中）时打一行结果和耗时，例如 `Variant lookup via …: 3 of 3 image(s) have variants (169 ms)`；失败或超时打 WARN，并附上当前超时设置。
+- 想看每页的匹配情况和没有衍生图的地址，把日志级别 `io.github.biliblihuorong.responsiveimages` 调到 DEBUG。
+
 ## 开发
 
 需要 Java 21。

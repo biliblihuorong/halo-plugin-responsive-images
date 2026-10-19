@@ -71,6 +71,7 @@ public class VariantResolver {
 
     private Mono<Map<String, List<Variant>>> query(VariantSource source, List<String> urls, Duration ttl,
         Duration timeout) {
+        var started = clock.millis();
         return source.resolve(urls)
             .timeout(timeout)
             .map(result -> {
@@ -83,11 +84,19 @@ public class VariantResolver {
                         hits.put(url, variants);
                     }
                 }
+                log.info("Variant lookup via {}: {} of {} image(s) have variants ({} ms)", source.describe(),
+                    hits.size(), urls.size(), clock.millis() - started);
+                if (log.isDebugEnabled()) {
+                    urls.stream().filter(url -> !hits.containsKey(url))
+                        .forEach(url -> log.debug("No variants for {}", url));
+                }
                 return hits;
             })
             .onErrorResume(e -> {
-                log.warn("Variant lookup via {} failed for {} image(s): {}", source.describe(), urls.size(),
-                    e.toString());
+                var hint = e instanceof java.util.concurrent.TimeoutException
+                    ? " (lookup timeout is " + timeout.toMillis() + " ms, raise it in 基本设置 if the server is slow)" : "";
+                log.warn("Variant lookup via {} failed for {} image(s) after {} ms: {}{}", source.describe(),
+                    urls.size(), clock.millis() - started, e.toString(), hint);
                 var expiresAt = clock.millis() + FAILURE_TTL.toMillis();
                 urls.forEach(url -> cache.put(url, new Entry(List.of(), expiresAt)));
                 return Mono.just(Map.of());
@@ -127,6 +136,7 @@ public class VariantResolver {
         if (!current.equals(signature)) {
             cache.invalidateAll();
             signature = current;
+            log.info("Responsive image sources changed, cache cleared: {}", current.isEmpty() ? "(none)" : current);
         }
     }
 }
