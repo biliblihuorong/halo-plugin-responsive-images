@@ -1,0 +1,13 @@
+Responsive Images application icon
+Copyright (c) 2026 shell
+
+logo.svg is the editable source for logo.png (512 x 512).
+The geometric image frames were drawn for this project with AI coding assistance.
+They do not incorporate the Halo logo or plugin-starter logo artwork.
+Both files are distributed under this project's MIT license; see LICENSE
+in the source repository.
+
+Use logo.png unchanged for both plugin.yaml and the application-market icon.
+
+Regenerate with librsvg:
+  rsvg-convert -w 512 -h 512 src/main/resources/logo.svg -o src/main/resources/logo.png

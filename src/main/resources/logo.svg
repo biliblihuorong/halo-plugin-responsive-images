@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">响应式图片插件图标</title>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#153742"/>
+      <stop offset="1" stop-color="#152344"/>
+    </linearGradient>
+    <linearGradient id="picture" x2="1" y2="1">
+      <stop stop-color="#72e4d4"/>
+      <stop offset="1" stop-color="#60b9ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#background)"/>
+  <rect x="91" y="104" width="294" height="242" rx="32" fill="none" stroke="#f5faff" stroke-width="18"/>
+  <circle cx="165" cy="176" r="24" fill="#b7e8ff"/>
+  <path d="M111 305L188 222L236 270L288 206L365 305Z" fill="url(#picture)"/>
+  <rect x="211" y="285" width="210" height="139" rx="25" fill="#153342" stroke="#72e4d4" stroke-width="16"/>
+  <path d="M234 400L282 346L317 375L353 332L398 400Z" fill="url(#picture)"/>
+  <circle cx="255" cy="326" r="12" fill="#b7e8ff"/>
+</svg>
